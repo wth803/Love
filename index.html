@@ -1,76 +1,182 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
+<!doctype html>
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>陈浩我爱你</title>
-  <style>
-  body {
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    background: linear-gradient(to bottom, #1e3c72, #2a5298);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
-  }
+    <meta charset="utf-8">
+    <title>陈浩宝宝我爱你</title>
 
-  h1 {
-    font-size: 4em;
-    color: #ff4b5c;
-    text-shadow: 0 0 10px #ff4b5c, 0 0 20px #ff6b8c, 0 0 30px #ff4b5c;
-    z-index: 2;
-    position: relative;
-  }
+    <style>
+        body {
+            /* 背景图片 */
+            background-image: url('./background.jpg'); /* 替换成你的图片路径 */
+            background-repeat: repeat-y; /* 垂直平铺 */
+            background-position: top center;
+        }
 
-  h1::after {
-    content: "❤️";
-    position: absolute;
-    font-size: 1em;
-    animation: beat 1s infinite;
-    left: 50%;
-    transform: translateX(-50%);
-    top: 100%;
-  }
+        h1 {
+            position: fixed;
+            top: 40%;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            transform: translateY(-50%);
+            font-family: 'Love Ya Like A Sister', cursive;
+            font-size: 40px;
+            color: #c70012;
+            padding: 0 20px;
+            text-shadow: 0 0 10px #fff, 0 0 20px #ff4b5c;
+            z-index: 2;
+        }
 
-  @keyframes beat {
-    0%, 100% { transform: translateX(-50%) scale(1); }
-    50% { transform: translateX(-50%) scale(1.3); }
-  }
+        @media (min-width: 1200px) {
+            h1 {
+                font-size: 100px;
+            }
+        }
 
-  /* 流星样式调整 */
-  .star {
-    position: absolute;
-    width: 8px;      /* 流星宽度加大 */
-    height: 24px;    /* 流星长度加大 */
-    background: linear-gradient(45deg, white, rgba(255,255,255,0));
-    opacity: 0.8;
-    border-radius: 50%;
-    animation: shooting 2s linear infinite;
-  }
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1; /* 保证文字在 canvas 上方 */
+        }
 
-  @keyframes shooting {
-    0% {
-      transform: translateY(0) translateX(0) scale(1);
-      opacity: 1;
-    }
-    100% {
-      transform: translateY(800px) translateX(200px) scale(1);
-      opacity: 0;
-    }
-  }
-</style>
+        /* 左侧滚动字幕 */
+        .scroll-left, .scroll-right {
+            position: fixed;
+            top: 0;
+            width: 150px;
+            height: 100%;
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            font-size: 100px;
+            font-weight: bold;
+            color: #ff4b91;
+            text-shadow: 0 0 10px #ff7bbd;
+            letter-spacing: 5px;
+            overflow: hidden;
+            z-index: 99999;
+            animation: scrollText 10s linear infinite;
+            font-family: "Comic Sans MS", "STKaiti", sans-serif;
+        }
+
+        /* 左侧在左边 */
+        .scroll-left {
+            left: 30px;
+        }
+
+        /* 右侧在右边 */
+        .scroll-right {
+            right: 30px;
+        }
+
+        /* 字往上滚动动画 */
+        @keyframes scrollText {
+            0% {
+                transform: translateY(100%);
+            }
+            100% {
+                transform: translateY(-100%);
+            }
+        }
+
+    </style>
 </head>
 <body>
-  <h1>陈浩宝宝我爱你</h1>
+<audio id="bgm" src="./background.mp3" autoplay loop></audio>
 
-  <!-- 流星效果 -->
-  <div class="star" style="top:10%; left:20%; animation-delay:0s;"></div>
-  <div class="star" style="top:30%; left:50%; animation-delay:1s;"></div>
-  <div class="star" style="top:50%; left:70%; animation-delay:0.5s;"></div>
-  <div class="star" style="top:70%; left:40%; animation-delay:1.5s;"></div>
-  <div class="star" style="top:20%; left:80%; animation-delay:2s;"></div>
+<div class="scroll-left">陈浩最美～陈浩最美～陈浩最美～</div>
+<div class="scroll-right">我爱陈浩～我爱陈浩～我爱陈浩～</div>
+<canvas></canvas>
+<h1>～陈浩宝宝我爱你～</h1>
+
+
+<script>
+    document.addEventListener('click', function () {
+        const audio = document.getElementById('bgm');
+        audio.muted = false;
+        audio.play();
+    });
+
+    var canvas = document.querySelector("canvas"),
+        ctx = canvas.getContext("2d");
+
+    var ww, wh;
+
+    function onResize() {
+        ww = canvas.width = window.innerWidth;
+        wh = canvas.height = window.innerHeight;
+    }
+
+    var precision = 100;
+    var hearts = [];
+
+    function onMove(e) {
+        if (e.type === "touchmove") {
+            hearts.push(new Heart(e.touches[0].clientX, e.touches[0].clientY));
+            hearts.push(new Heart(e.touches[0].clientX, e.touches[0].clientY));
+        } else {
+            hearts.push(new Heart(e.clientX, e.clientY));
+            hearts.push(new Heart(e.clientX, e.clientY));
+        }
+    }
+
+    var Heart = function (x, y) {
+        this.x = x || Math.random() * ww;
+        this.y = y || Math.random() * wh;
+        this.size = Math.random() * 2 + 1.5; // 心形稍微大一点
+        this.speedX = (Math.random() - 0.5) * 6;
+        this.speedY = (Math.random() - 0.5) * 6;
+        this.speedSize = Math.random() * 0.03 + 0.01;
+        this.vertices = [];
+        for (var i = 0; i < precision; i++) {
+            var step = (i / precision - 0.5) * (Math.PI * 2);
+            var vector = {
+                x: (15 * Math.pow(Math.sin(step), 3)),
+                y: -(13 * Math.cos(step) - 5 * Math.cos(2 * step) - 2 * Math.cos(3 * step) - Math.cos(4 * step))
+            }
+            this.vertices.push(vector);
+        }
+    }
+
+    Heart.prototype.draw = function () {
+        this.size -= this.speedSize;
+        this.x += this.speedX;
+        this.y += this.speedY;
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.scale(this.size, this.size);
+        ctx.beginPath();
+        for (var i = 0; i < precision; i++) {
+            var vector = this.vertices[i];
+            ctx.lineTo(vector.x, vector.y);
+        }
+        ctx.fillStyle = "hsla(0, 100%, 60%, " + this.size / 2 + ")";
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = "hsla(0, 100%, 70%,0.5)";
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    };
+
+    function render() {
+        requestAnimationFrame(render);
+        hearts.push(new Heart())
+        ctx.clearRect(0, 0, ww, wh);
+        for (var i = 0; i < hearts.length; i++) {
+            hearts[i].draw();
+            if (hearts[i].size <= 0) {
+                hearts.splice(i, 1);
+                i--;
+            }
+        }
+    }
+
+    onResize();
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("touchmove", onMove);
+    window.addEventListener("resize", onResize);
+    requestAnimationFrame(render);
+</script>
 
 </body>
 </html>
